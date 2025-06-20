@@ -1,44 +1,27 @@
-
-ROTORS = {0: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-          1: 'EKMFLGDQVZNTOWYHXUSPAIBRCJ',
-          2: 'AJDKSIRUXBLHWTMCQGZNPYFVOE',
-          3: 'BDFHJLCPRTXVZNYEIWGAKMUSQO',
-          4: 'ESOVPZJAYQUIRHXLNFTGKDCMWB',
-          5: 'VZBRGITYUPSDNHLXAWMJQOFECK',
-          6: 'JPGVOUMFYQBENHZRDKASXLICTW',
-          7: 'NZJHGRCXMYSWBOUFAIVLPEKQDT',
-          8: 'FKQHTLXOCBJSPDZRAMEWNIUYGV',
-          'beta': 'LEYJVCNIXWPBQMDRTAKZGFUHOS',
-          'gamma': 'FSOKANUERHMBTIYCWLQPZXVGJD'
-          }
-REFLEC = {0: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-          1: 'YRUHQSLDPXNGOKMIEBFZCWVJAT',
-          2: 'FVPJIAOYEDRZXWGCTKUQSBNMHL',
-          3: 'ENKQAUYWJICOPBLMDXZVFTHRGS',
-          4: 'RDOBJNTKVEHMLFCWZAXGYIPSUQ',
-          }
+def return_rotor(pos) -> str:
+    ROTORS = {0: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+              1: 'EKMFLGDQVZNTOWYHXUSPAIBRCJ',
+              2: 'AJDKSIRUXBLHWTMCQGZNPYFVOE',
+              3: 'BDFHJLCPRTXVZNYEIWGAKMUSQO',
+              4: 'ESOVPZJAYQUIRHXLNFTGKDCMWB',
+              5: 'VZBRGITYUPSDNHLXAWMJQOFECK',
+              6: 'JPGVOUMFYQBENHZRDKASXLICTW',
+              7: 'NZJHGRCXMYSWBOUFAIVLPEKQDT',
+              8: 'FKQHTLXOCBJSPDZRAMEWNIUYGV',
+              'beta': 'LEYJVCNIXWPBQMDRTAKZGFUHOS',
+              'gamma': 'FSOKANUERHMBTIYCWLQPZXVGJD'
+              }
+    return ROTORS[pos]
 
 
-def coder(char: str, shift: list, rotors: list, alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ') -> str:
-    len_shift = len(shift)
-    len_alphabet = len(alphabet)
-
-    for i in range(len_shift):  # если reverse = False  то по факту получаем(0,4,1) иначе (0,4,-1)
-        index = rotors[i].find(char)  # индекс сдвига и поиска нужного символа
-        index = (index - shift[i]) % len_alphabet  # индекс 1 сдвига ( нахождение индекса символа в алфавите)
-        char = alphabet[index]  # запись нового символа, найденного в роторе
-    return char
-
-
-def encoder(char: str, shift: list, rotors: list, alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ') -> str:
-    len_shift = len(shift)
-    len_alphabet = len(alphabet)
-
-    for i in range(len_shift):  # если reverse = False  то по факту получаем(0,4,1) иначе (0,4,-1)
-        index = alphabet.find(char)  # индекс сдвига и поиска нужного символа
-        index = (index + shift[i]) % len_alphabet  # индекс 1 сдвига ( нахождение индекса символа в алфавите)
-        char = rotors[i][index]  # запись нового символа, найденного в роторе
-    return char
+def return_reflector(pos) -> str:
+    REFLEC = {0: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+              1: 'YRUHQSLDPXNGOKMIEBFZCWVJAT',
+              2: 'FVPJIAOYEDRZXWGCTKUQSBNMHL',
+              3: 'ENKQAUYWJICOPBLMDXZVFTHRGS',
+              4: 'RDOBJNTKVEHMLFCWZAXGYIPSUQ',
+              }
+    return REFLEC[pos]
 
 
 def clean_and_uppercase(s):
@@ -48,29 +31,88 @@ def clean_and_uppercase(s):
     return cleaned.upper()
 
 
+def return_index(char, rotor):
+    return rotor.find(char)
+
+
+def return_char(index, rotor):
+    return rotor[index]
+
+
 def enigma(text, ref, rot1, shift1, rot2, shift2, rot3, shift3):
     # your code
-    new_text = ''
-    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    REFLEC = {0: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-              1: 'YRUHQSLDPXNGOKMIEBFZCWVJAT',
-              2: 'FVPJIAOYEDRZXWGCTKUQSBNMHL',
-              3: 'ENKQAUYWJICOPBLMDXZVFTHRGS',
-              4: 'RDOBJNTKVEHMLFCWZAXGYIPSUQ',
-              }
 
-    text = clean_and_uppercase(text)
-    # это шаги сдвигов, до реф слева-направо, после реф: справа-налево *(-1)
-    shift = [shift3, shift2 - shift3, shift1 - shift2, 0 - shift1]
-    rotors = [ROTORS[rot3], ROTORS[rot2], ROTORS[rot1], REFLEC[ref]]
+    text = clean_and_uppercase(text)  # подготавливаем строку
+    message = ''  # закодированное сообщение
 
-    for t in text:
-        ch = encoder(t, shift, rotors)
-        index = REFLEC[ref].find(ch)
-        ch = alphabet[index]
-        ch = coder(ch, shift[::-1], rotors[::-1])
-        new_text += ch
-    return new_text
+    # смещения роторов
+    shift_rotor3 = shift3
+    shift_rotor2 = shift2 - shift3
+    shift_rotor1 = shift1 - shift2
+    shift_reflector = 0 - shift1
+
+    for char in text:
+        ch = char
+
+        # rotor3
+        rotor = return_rotor(0)
+        index = return_index(ch, rotor)
+        index = (index + shift_rotor3) % len(rotor)
+        rotor = return_rotor(rot3)
+        ch = return_char(index, rotor)  # буква 3 ротора
+
+        # rotor2
+        rotor = return_rotor(0)
+        index = return_index(ch, rotor)
+        index = (index + shift_rotor2) % len(rotor)
+        rotor = return_rotor(rot2)
+        ch = return_char(index, rotor)  # буква 2 ротора
+
+        # rotor1
+        rotor = return_rotor(0)
+        index = return_index(ch, rotor)
+        index = (index + shift_rotor1) % len(rotor)
+        rotor = return_rotor(rot1)
+        ch = return_char(index, rotor)  # буква 1 ротора
+
+        # reflector
+        rotor = return_rotor(0)
+        index = return_index(ch, rotor)
+        index = (index + shift_reflector) % len(rotor)
+        rotor = return_reflector(ref)
+        ch = return_char(index, rotor)  # буква рефлектора
+
+        # reflector добавочный
+        rotor = return_rotor(0)
+        index = return_index(ch, rotor)
+        index = (index - shift_reflector) % len(rotor)
+        rotor = return_reflector(0)
+        ch = return_char(index, rotor)  # буква рефлектора
+
+        # rotor1
+        rotor = return_rotor(rot1)
+        index = return_index(ch, rotor)
+        index = (index - shift_rotor1) % len(rotor)
+        rotor = return_rotor(0)
+        ch = return_char(index, rotor)
+
+        # rotor2
+        rotor = return_rotor(rot2)
+        index = return_index(ch, rotor)
+        index = (index - shift_rotor2) % len(rotor)
+        rotor = return_rotor(0)
+        ch = return_char(index, rotor)
+
+        # rotor3
+        rotor = return_rotor(rot3)
+        index = return_index(ch, rotor)
+        index = (index - shift_rotor3) % len(rotor)
+        rotor = return_rotor(0)
+        ch = return_char(index, rotor)
+
+        message += ch
+
+    return message
 
 
 f = enigma('AYIQQLXZMFHQUHQCH', 1, 1, -1, 2, 2, 3, -1)
